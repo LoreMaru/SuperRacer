@@ -8,7 +8,7 @@ export function createAnimations(scene) {
 
   scene.anims.create({
     key: 'Due_ruote',
-    frames: scene.anims.generateFrameNumbers('Due_ruote', { start: 0, end: 61 }),
+    frames: scene.anims.generateFrameNumbers('Due_ruote', { start: 0, end: 62 }),
     frameRate: 30,
     repeat: -1
   });

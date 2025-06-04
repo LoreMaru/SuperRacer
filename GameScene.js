@@ -1,5 +1,5 @@
 import { createAnimations } from './animations.js';
-import { addTrackPiece } from './utility.js';
+import { addTrackPiece, powerBarActivation } from './utility.js';
 import { PG } from './characters.js';
 
 var car
@@ -86,16 +86,17 @@ class GameScene extends Phaser.Scene {
     //player
     this.car = this.physics.add.image(300, 500, 'car');
     this.car.setCollideWorldBounds(true);
-    this.car.setOrigin(-1);
+    this.car.setOrigin(0.5);
     this.car.setDepth(1);
 
     //animazione di test
     //this.bolla_papale = this.add.sprite(300, 400, 'bolla_papale').setOrigin(0.5).setDepth(0);
     //this.bolla_papale.play('bolla_papale');
-    this.character.keyAnimazione = this.add.sprite(this.car.x, this.car.x, this.character.keyAnimazione)
-    .setOrigin(0)
-    .setDepth(2)
-    .play(this.character.keyAnimazione); 
+    this.powerAnimation = this.add.sprite(this.car.x, this.car.y, this.character.keyAnimazione)
+    .setOrigin(0.5)
+    .setVisible(false)
+    .setScale(1.5)
+    //.play(this.character.keyAnimazione);
     //console.log('create ',this.character.keyAnimazione)   
   
     //**inizializzazione comandi
@@ -106,8 +107,8 @@ class GameScene extends Phaser.Scene {
   update() {
     const carSpeed = 3;
 
-    this.character.keyAnimazione.x = this.car.x;
-    this.character.keyAnimazione.y = this.car.y;
+    this.powerAnimation.x = this.car.x;
+    this.powerAnimation.y = this.car.y;
 
     //**update timer
 /*    BLOCCO TIMER CON CONTEGGIO SECONDI:MILLISECONDI
@@ -172,14 +173,16 @@ class GameScene extends Phaser.Scene {
       this.car.y -= 0.5;
 
       this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
-      this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
+      //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
     }
     if (this.cursors.down.isDown) {
       this.car.y += 0.5;
     }//tasto X per usare il power
     if (Phaser.Input.Keyboard.JustDown(this.keyX)) {
-      this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
-      this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
+      //this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
+      //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
+      powerBarActivation(this, this.powerAnimation, this.character.keyAnimazione);
+      
     }    
   }
   

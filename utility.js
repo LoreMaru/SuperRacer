@@ -10,6 +10,40 @@ export function addTrackPiece(scene, type, y) {
   scene.trackPieces.add(piece);
 }
 
+export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
+  if (scene.powerBar.height === 200) {
+    const dischargeTimer = scene.time.addEvent({
+      delay: 1000,
+      loop: true,
+      callback: () => {
+        scene.powerBar.height -= 10;
+        powerAnimation.setVisible(true).setDepth(2).play(keyAnimazione);
+
+        if (scene.powerBar.height <= 0) {
+          dischargeTimer.remove();
+          powerAnimation.setVisible(false).stop();
+
+          const rechargeTimer = scene.time.addEvent({
+            delay: 1000,
+            loop: true,
+            callback: () => {
+              scene.powerBar.height += 2.5;
+              if (scene.powerBar.height >= 200) {
+                scene.powerBar.height = 200;
+                rechargeTimer.remove();
+                console.log('Barra ricaricata completamente');
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+}
+
+
+
+//attualmente non usata
 export function spawnEnemyCar(enemyName) {
   let enemyCar = physics.add.image(400, -100, `${enemyName}`); // posizione iniziale fuori dallo schermo
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
@@ -27,6 +61,7 @@ export function spawnEnemyCar(enemyName) {
   });
 };
 
+//da testare
 export function spawnObject() {
   let objectToSpawn;
   let randomItem = Phaser.Math.Between(1, 10);
