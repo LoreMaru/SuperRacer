@@ -17,8 +17,8 @@ export const PG = [
     descrizione: 'Passa attraverso nemici ed ostacoli',
     keyAnimazione: 'Due_ruote',
     animazione: './assets/effects/2_magic8_spritesheet.png',
-    vita: 200,
-    potereN: 200
+    //vitaN: 200,
+    //potereN: 200
   },
   {
     ID: 'PG3',
@@ -28,8 +28,8 @@ export const PG = [
     descrizione: 'Disattiva i poteri altrui',
     keyAnimazione: 'Diss_onanza',
     animazione: './assets/effects/8_protectioncircle_spritesheet.png',
-    vita: 200,
-    potereN: 200
+    //vitaN: 200,
+    //potereN: 200
   },
   {
     ID: 'PG4',
@@ -39,8 +39,8 @@ export const PG = [
     descrizione: 'Non può essere colpito e recupera salute',
     keyAnimazione: 'Bolla_papale',
     animazione: './assets/effects/10_weaponhit_spritesheet.png',
-    vita: 200,
-    potereN: 200
+    //vitaN: 200,
+    //potereN: 200
   }
 ];
 

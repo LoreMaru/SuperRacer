@@ -12,17 +12,22 @@ export function addTrackPiece(scene, type, y) {
 
 export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
   if (scene.powerBar.height === 200) {
+    //avvia animazione
+    powerAnimation.setVisible(true).setDepth(2);
+    //evita di riavviare l'animazione se è già in corso permettendo il loop
+    if (!powerAnimation.anims.isPlaying) {
+      powerAnimation.play(keyAnimazione);
+    }
+    //timer per il consumo della barra
     const dischargeTimer = scene.time.addEvent({
       delay: 1000,
       loop: true,
       callback: () => {
         scene.powerBar.height -= 10;
-        powerAnimation.setVisible(true).setDepth(2).play(keyAnimazione);
-
         if (scene.powerBar.height <= 0) {
           dischargeTimer.remove();
           powerAnimation.setVisible(false).stop();
-
+          //timer per il recupero della barra
           const rechargeTimer = scene.time.addEvent({
             delay: 1000,
             loop: true,
@@ -40,7 +45,6 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
     });
   }
 }
-
 
 
 //attualmente non usata
