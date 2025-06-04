@@ -47,7 +47,7 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
 }
 
 
-//attualmente non usata
+//da testare
 export function spawnEnemyCar(enemyName) {
   let enemyCar = physics.add.image(400, -100, `${enemyName}`); // posizione iniziale fuori dallo schermo
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
@@ -65,7 +65,7 @@ export function spawnEnemyCar(enemyName) {
   });
 };
 
-//da testare
+//da completare
 export function spawnObject() {
   let objectToSpawn;
   let randomItem = Phaser.Math.Between(1, 10);
