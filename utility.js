@@ -47,7 +47,7 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
 }
 
 export function fasterByTime(scene) {
-  //incrementa la velocità di 2 ogni mezzo minuto
+  //incrementa la velocità di 2 ogni 30 sec.
   scene.scrollSpeed += 2
 }
 
