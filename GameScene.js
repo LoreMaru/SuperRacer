@@ -1,5 +1,5 @@
 import { createAnimations } from './animations.js';
-import { addTrackPiece, powerBarActivation, fasterByTime, spawnRandomEnemyCar } from './utility.js';
+import { addTrackPiece, powerBarActivation, fasterByTime, spawnRandomEnemyCar, spawnEnemiesOverTime } from './utility.js';
 import { PG } from './characters.js';
 
 var car
@@ -83,7 +83,7 @@ class GameScene extends Phaser.Scene {
     // Altezza in pixel di ogni segmento della pista
     this.pieceHeight = 600;
     // Velocità base di scorrimento della pista (in pixel per frame)
-    this.scrollSpeed = 5;
+    this.scrollSpeed = 6;
     // Accumulatore per sapere quando aggiungere un nuovo pezzo
     this.distanceSinceLastPiece = 0;    
     // Posizionamento dei primi 3 pezzi (tutti rettilinei), partendo da y = 0 verso l'alto
@@ -105,14 +105,17 @@ class GameScene extends Phaser.Scene {
     //.play(this.character.keyAnimazione);
     //console.log('create ',this.character.keyAnimazione)
     
-    spawnRandomEnemyCar(this,this.selectedID, this.car)
+    spawnRandomEnemyCar(this,this.selectedID, this.car, this.spawnRandomEnemyCar)
+    this.enemySpawnDelay = 10000; // in millisecondi (10 secondi)
+    this.minimumSpawnDelay = 2000; // non andare sotto i 2 secondi
+    spawnEnemiesOverTime(this, this.selectedID, this.car, this.enemySpawnDelay, this.minimumSpawnDelay); // avvia il ciclo
   
     //**inizializzazione comandi
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
   }
   
-  update() {
+  update(time, delta) {
     const carSpeed = 3;
 
     this.powerAnimation.x = this.car.x;
@@ -128,77 +131,68 @@ class GameScene extends Phaser.Scene {
     this.car.y -= 0.5;
 
     this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
-    //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
   }
   if (this.cursors.down.isDown) {
     this.car.y += 0.5;
   }//tasto X per usare il power
   if (Phaser.Input.Keyboard.JustDown(this.keyX)) {
-    //this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
-    //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
-    powerBarActivation(this, this.powerAnimation, this.character.keyAnimazione);
-    
-  }   
-
-    //**update timer
-/*    BLOCCO TIMER CON CONTEGGIO SECONDI:MILLISECONDI
-    if (this.lifeBar && this.lifeBar.height > 0) {
-      const elapsed = this.time.now - this.startTime;
-      const seconds = Math.floor(elapsed / 1000);
-      const milliseconds = Math.floor(elapsed % 1000);
+    powerBarActivation(this, this.powerAnimation, this.character.keyAnimazione);   
+  }//FINE gestione comandi, deve andare tutto dopo questo quando possibile
   
-      this.timerText.setText(`Tempo: ${seconds}:${milliseconds.toString().padStart(3, '0')}`);
-    } else {
-      // opzionale: blocca aggiornamento
-      this.timer.remove();
-    }
-*/
-    if (this.lifeBar && this.lifeBar.height > 0) {
-      const elapsed = this.time.now - this.startTime; // tempo totale in ms
-      const totalSeconds = Math.floor(elapsed / 1000);
+  ////parte dell'aggiustamento per stabilizazione fps
+  const dt = delta / 1000;                // delta in secondi
+  const scrollMultiplier = dt * 60;       // normalizzazione a 60 fps
 
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      const secondsFormatted = seconds.toString().padStart(2, '0');
-      const milliseconds = Math.floor(elapsed % 1000);
 
-      this.timerText.setText(`Tempo: ${minutes}:${secondsFormatted}:${milliseconds}`);
+  if (this.lifeBar && this.lifeBar.height > 0) {
+    const elapsed = this.time.now - this.startTime; // tempo totale in ms
+    const totalSeconds = Math.floor(elapsed / 1000);
 
-      if (totalSeconds % 30 === 0 && this.lastHalfMinute !== totalSeconds) {
-        //incrementa la velocità di 2 ogni minuto
-        this.lastHalfMinute = totalSeconds;
-        fasterByTime(this);
-        console.log('velocità',this.scrollSpeed)
-      }
-    } else {
-      this.timer.remove();
-    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const secondsFormatted = seconds.toString().padStart(2, '0');
+    const milliseconds = Math.floor(elapsed % 1000);
 
-    //**gestione update percorso
-    // Imposta velocità visiva dello sfondo: rallenta se l’auto è fuori carreggiata
-    let visualScrollSpeed = this.scrollSpeed;
-    if (this.car.x < 100 || this.car.x > 600) {
-      visualScrollSpeed = 0.5; // rallenta lo scorrimento
+    this.timerText.setText(`Tempo: ${minutes}:${secondsFormatted}:${milliseconds}`);
+
+    if (totalSeconds % 15 === 0 && this.lastHalfMinute !== totalSeconds) {
+      //incrementa la velocità di 2 ogni minuto
+      this.lastHalfMinute = totalSeconds;
+      fasterByTime(this);
+      console.log('velocità',this.scrollSpeed)
     }
-    if (this.slowDownActive) {
-      visualScrollSpeed = 0.3; // rallenta all'impatto
+  }else {
+    this.timer.remove();
+  }
+
+  //**gestione update percorso
+  // Imposta velocità visiva dello sfondo: rallenta se l’auto è fuori carreggiata
+  let visualScrollSpeed = this.scrollSpeed;
+  if (this.car.x < 100 || this.car.x > 600) {
+    visualScrollSpeed = 0.5;
+  }
+  if (this.slowDownActive) {
+    visualScrollSpeed = 0.3;
+  }
+  
+  const adjustedSpeed = visualScrollSpeed * scrollMultiplier;//parte dell'aggiustamento per stabilizazione fps
+  
+  // Sposta ogni pezzo pista verso il basso (effetto movimento)
+  this.trackPieces.getChildren().forEach(piece => {
+    piece.y += adjustedSpeed;
+    // Se il pezzo è completamente uscito dallo schermo, lo distruggiamo per liberare memoria
+    if (piece.y > 1000) {
+      piece.destroy();
     }
-    // Sposta ogni pezzo pista verso il basso (effetto movimento)
-    this.trackPieces.getChildren().forEach(piece => {
-      piece.y += visualScrollSpeed;
-      // Se il pezzo è completamente uscito dallo schermo, lo distruggiamo per liberare memoria
-      if (piece.y > 1000) {
-        piece.destroy();
-      }
-    });    
-    // Aggiungiamo un nuovo pezzo quando si è raggiunta la distanza verticale necessaria
-    this.distanceSinceLastPiece += this.scrollSpeed;
-    if (this.distanceSinceLastPiece >= this.pieceHeight) {
-      const types = ['straight', 'curve_left', 'curve_right'];          // tipi di pezzi disponibili
-      const randomType = Phaser.Utils.Array.GetRandom(types);           // scegli uno casuale
-      addTrackPiece(this, randomType, -this.pieceHeight);                // aggiungi in alto
-      this.distanceSinceLastPiece = 0;                                  // resetta il contatore
-    }
+  });    
+  // Aggiungiamo un nuovo pezzo quando si è raggiunta la distanza verticale necessaria
+  this.distanceSinceLastPiece += this.scrollSpeed * scrollMultiplier;//parte dell'aggiustamento per stabilizazione fps
+  if (this.distanceSinceLastPiece >= this.pieceHeight) {
+    const types = ['straight', 'curve_left', 'curve_right'];          // tipi di pezzi disponibili
+    const randomType = Phaser.Utils.Array.GetRandom(types);           // scegli uno casuale
+    addTrackPiece(this, randomType, -this.pieceHeight);                // aggiungi in alto
+    this.distanceSinceLastPiece = 0;                                  // resetta il contatore
+  }
  
   }
 

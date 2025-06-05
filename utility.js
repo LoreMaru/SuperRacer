@@ -52,26 +52,42 @@ export function fasterByTime(scene) {
 }
 
 
-//testing problema: slowDownActive is not defined
 export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
+  
   let pgCopy = PG.filter((x) => x.ID != selectedPG);
   let randomEnemy = pgCopy[Math.floor(Math.random() * pgCopy.length)];
-
   let enemyCar = scene.physics.add.image(400, -100, `${randomEnemy.ID}`); // posizione iniziale fuori dallo schermo
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
   enemyCar.setDepth(1); // sopra la pista
 
   scene.physics.add.collider(carSelected, enemyCar, () => {
     // Attiva rallentamento
-    slowDownActive = true;
+    scene.slowDownActive = true;
     // Effetto di tremolio sulla camera
-    cameras.main.shake(100, 0.01);
+    scene.cameras.main.shake(100, 0.01);
     // Dopo 3 secondi, torna normale
-    time.delayedCall(1000, () => {
-    slowDownActive = false;
+    scene.time.delayedCall(1000, () => {
+      scene.slowDownActive = false;
     });
   });
 };
+
+export function spawnEnemiesOverTime(scene, selectedPG, carSelected, enemySpawnDelay, minimumSpawnDelay) {
+  // genera il nemico
+  spawnRandomEnemyCar(scene, selectedPG, carSelected);
+  // calcola il nuovo ritardo: ogni volta diminuisce del 10%
+  enemySpawnDelay *= 0.9;
+  // limite minimo per non esagerare
+  if (enemySpawnDelay < minimumSpawnDelay) {
+    enemySpawnDelay = minimumSpawnDelay;
+  }
+
+  // richiama sé stessa dopo il nuovo delay
+  scene.time.delayedCall(enemySpawnDelay, () => {
+    spawnEnemiesOverTime(scene, selectedPG, carSelected, enemySpawnDelay, minimumSpawnDelay);
+  });
+}
+
 
 //da completare
 export function spawnObject() {
