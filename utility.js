@@ -1,4 +1,4 @@
-
+import { PG } from './characters.js';
 
 export function saluta(nome) {
     console.log(`Ciao, ${nome}!`);
@@ -46,14 +46,22 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
   }
 }
 
+export function fasterByTime(scene) {
+  //incrementa la velocità di 2 ogni mezzo minuto
+  scene.scrollSpeed += 2
+}
 
-//da testare
-export function spawnEnemyCar(enemyName) {
-  let enemyCar = physics.add.image(400, -100, `${enemyName}`); // posizione iniziale fuori dallo schermo
+
+//testing problema: slowDownActive is not defined
+export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
+  let pgCopy = PG.filter((x) => x.ID != selectedPG);
+  let randomEnemy = pgCopy[Math.floor(Math.random() * pgCopy.length)];
+
+  let enemyCar = scene.physics.add.image(400, -100, `${randomEnemy.ID}`); // posizione iniziale fuori dallo schermo
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
   enemyCar.setDepth(1); // sopra la pista
 
-  physics.add.collider(car, enemyCar, () => {
+  scene.physics.add.collider(carSelected, enemyCar, () => {
     // Attiva rallentamento
     slowDownActive = true;
     // Effetto di tremolio sulla camera
