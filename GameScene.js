@@ -1,5 +1,5 @@
 import { createAnimations } from './animations.js';
-import { addTrackPiece, powerBarActivation } from './utility.js';
+import { addTrackPiece, powerBarActivation, fasterByTime, spawnRandomEnemyCar } from './utility.js';
 import { PG } from './characters.js';
 
 var car
@@ -11,10 +11,10 @@ class GameScene extends Phaser.Scene {
     super('GameScene');
   } 
 
-  init(data) {
+  init(dataFromSelection) {
     //Questo viene chiamato prima di preload()
     //Serve per portare i dati della selezione dalla scena precedente
-    this.selectedID = data.selected;
+    this.selectedID = dataFromSelection.selected;
     //console.log('Init:', this.selectedID);
   }
 
@@ -34,9 +34,15 @@ class GameScene extends Phaser.Scene {
     this.load.spritesheet(this.character.keyAnimazione, this.character.animazione, { frameWidth: 100, frameHeight: 100 });
     //console.log('preload ',this.character.keyAnimazione, this.character.animazione)
 
+    //scelta del nemico
+    this.load.image('PG1', './assets/BuickerB.png');
+    this.load.image('PG2', './assets/SuperB.png');
+    this.load.image('PG3', './assets/GalardB.png');
+    this.load.image('PG4', './assets/RamB.png');
+
   }
   
-  create(data) {
+  create() {
     //console.log('Hai scelto cre:', data.selected);
     //import file animazioni
     createAnimations(this);
@@ -51,6 +57,8 @@ class GameScene extends Phaser.Scene {
       stroke: '#000000',
       strokeThickness: 2
     }).setDepth(1);
+    //per incremento della velocità al passare del tempo
+    this.lastHalfMinute = -1;
 
   //**gestione delle barre**
     this.life = this.add.image(40, 10, 'life').setOrigin(0, 0);
@@ -75,7 +83,7 @@ class GameScene extends Phaser.Scene {
     // Altezza in pixel di ogni segmento della pista
     this.pieceHeight = 600;
     // Velocità base di scorrimento della pista (in pixel per frame)
-    this.scrollSpeed = 2;
+    this.scrollSpeed = 5;
     // Accumulatore per sapere quando aggiungere un nuovo pezzo
     this.distanceSinceLastPiece = 0;    
     // Posizionamento dei primi 3 pezzi (tutti rettilinei), partendo da y = 0 verso l'alto
@@ -89,15 +97,15 @@ class GameScene extends Phaser.Scene {
     this.car.setOrigin(0.5);
     this.car.setDepth(1);
 
-    //animazione di test
-    //this.bolla_papale = this.add.sprite(300, 400, 'bolla_papale').setOrigin(0.5).setDepth(0);
-    //this.bolla_papale.play('bolla_papale');
+    //**animazione
     this.powerAnimation = this.add.sprite(this.car.x, this.car.y, this.character.keyAnimazione)
     .setOrigin(0.5)
     .setVisible(false)
     .setScale(1.5)
     //.play(this.character.keyAnimazione);
-    //console.log('create ',this.character.keyAnimazione)   
+    //console.log('create ',this.character.keyAnimazione)
+    
+    spawnRandomEnemyCar(this,this.selectedID, this.car)
   
     //**inizializzazione comandi
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -109,6 +117,28 @@ class GameScene extends Phaser.Scene {
 
     this.powerAnimation.x = this.car.x;
     this.powerAnimation.y = this.car.y;
+
+  //**gestione comandi
+  if (this.cursors.left.isDown) {
+    this.car.x -= carSpeed;
+  } else if (this.cursors.right.isDown) {
+    this.car.x += carSpeed;
+  }
+  if (this.cursors.up.isDown) {
+    this.car.y -= 0.5;
+
+    this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
+    //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
+  }
+  if (this.cursors.down.isDown) {
+    this.car.y += 0.5;
+  }//tasto X per usare il power
+  if (Phaser.Input.Keyboard.JustDown(this.keyX)) {
+    //this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
+    //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
+    powerBarActivation(this, this.powerAnimation, this.character.keyAnimazione);
+    
+  }   
 
     //**update timer
 /*    BLOCCO TIMER CON CONTEGGIO SECONDI:MILLISECONDI
@@ -133,6 +163,13 @@ class GameScene extends Phaser.Scene {
       const milliseconds = Math.floor(elapsed % 1000);
 
       this.timerText.setText(`Tempo: ${minutes}:${secondsFormatted}:${milliseconds}`);
+
+      if (totalSeconds % 30 === 0 && this.lastHalfMinute !== totalSeconds) {
+        //incrementa la velocità di 2 ogni minuto
+        this.lastHalfMinute = totalSeconds;
+        fasterByTime(this);
+        console.log('velocità',this.scrollSpeed)
+      }
     } else {
       this.timer.remove();
     }
@@ -162,31 +199,9 @@ class GameScene extends Phaser.Scene {
       addTrackPiece(this, randomType, -this.pieceHeight);                // aggiungi in alto
       this.distanceSinceLastPiece = 0;                                  // resetta il contatore
     }
-  
-    //**gestione comandi
-    if (this.cursors.left.isDown) {
-      this.car.x -= carSpeed;
-    } else if (this.cursors.right.isDown) {
-      this.car.x += carSpeed;
-    }
-    if (this.cursors.up.isDown) {
-      this.car.y -= 0.5;
-
-      this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
-      //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
-    }
-    if (this.cursors.down.isDown) {
-      this.car.y += 0.5;
-    }//tasto X per usare il power
-    if (Phaser.Input.Keyboard.JustDown(this.keyX)) {
-      //this.lifeBar.height > 0 ? this.lifeBar.height -= 0.5 : this.lifeBar.height
-      //this.powerBar.height > 0 ? this.powerBar.height -= 0.5 : this.powerBar.height
-      powerBarActivation(this, this.powerAnimation, this.character.keyAnimazione);
-      
-    }    
+ 
   }
-  
-  
+
 
 }
 
