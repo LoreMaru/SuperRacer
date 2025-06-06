@@ -1,0 +1,3 @@
+verificare collisioni con i nemici
+dare una barra della vita anche ai nemici/farli smettere di inseguire il giocatore ad un cercto punto
+cercare idee per migliorare Diss-onanza

@@ -24,7 +24,7 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
       loop: true,
       callback: () => {
         scene.powerBar.height -= 10;
-        if (scene.powerBar.height <= 0) {
+        if (scene.powerBar.height == 0) {
           dischargeTimer.remove();
           powerAnimation.setVisible(false).stop();
           //timer per il recupero della barra
@@ -36,7 +36,6 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
               if (scene.powerBar.height >= 200) {
                 scene.powerBar.height = 200;
                 rechargeTimer.remove();
-                console.log('Barra ricaricata completamente');
               }
             }
           });
@@ -53,15 +52,21 @@ export function fasterByTime(scene) {
 
 
 export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
-  
   let pgCopy = PG.filter((x) => x.ID != selectedPG);
   let randomEnemy = pgCopy[Math.floor(Math.random() * pgCopy.length)];
-  let enemyCar = scene.physics.add.image(400, -100, `${randomEnemy.ID}`); // posizione iniziale fuori dallo schermo
+  let enemyCar = scene.physics.add.image(400, -100, `${randomEnemy.ID}`);// posizione iniziale fuori dallo schermo
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
   enemyCar.setDepth(1); // sopra la pista
+  enemyCar.isTracking = true; // proprietà personalizzata, vedi update
+  scene.enemies.add(enemyCar);
   //enemyCar.setAngle(180); 
 
+  //imposta il movimento verso il giocatore
+    scene.physics.moveToObject(enemyCar, carSelected, 100); // 100 è la velocità in px/s
+
+
   scene.physics.add.collider(carSelected, enemyCar, () => {
+    scene.lifeBar.height -= 5; 
     // Attiva rallentamento
     scene.slowDownActive = true;
     // Effetto di tremolio sulla camera
@@ -73,56 +78,54 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
   });
 };
 
-export function spawnEnemiesOverTime(scene, selectedPG, carSelected, enemySpawnDelay, minimumSpawnDelay) {
-  // genera il nemico
+export function spawnRandomObj(scene, carSelected){
+  let objectToSpawn;
+  let randomItem = Phaser.Math.Between(1, 10);
+  isEven(randomItem) ? objectToSpawn = 'power' : objectToSpawn = 'life';
+  
+  let randomSpot;//if per evitare che l'oggetto compaia sul nemico
+  if (Phaser.Math.Between(0, 1) === 0) {
+  randomSpot = Phaser.Math.Between(250, 300);
+} else {
+  randomSpot = Phaser.Math.Between(500, 700);
+}
+  let upItem = scene.physics.add.image(randomSpot, -100, objectToSpawn);
+  upItem.setVelocityY(100); // scende lentamente verso il basso
+  upItem.setDepth(1);
+  upItem.setScale(0.07);
+
+  scene.physics.add.collider(carSelected, upItem, () => {
+    upItem.disableBody(true, true);
+    if(objectToSpawn=='life' && scene.lifeBar.height<200){
+      scene.lifeBar.height += 5; 
+    }
+    if(objectToSpawn=='power' && scene.powerBar.height<200){
+      scene.powerBar.height += 5;
+    }
+  });
+}
+
+//funzione per generare nemici ed oggetti nel tempo
+export function spawnThingsOverTime(scene, selectedPG, carSelected, enemySpawnDelay, minimumSpawnDelay) {
+  // genera il nemico e l'oggetto
   spawnRandomEnemyCar(scene, selectedPG, carSelected);
+  spawnRandomObj(scene, carSelected)
   // calcola il nuovo ritardo: ogni volta diminuisce del 10%
   enemySpawnDelay *= 0.9;
   // limite minimo per non esagerare
   if (enemySpawnDelay < minimumSpawnDelay) {
     enemySpawnDelay = minimumSpawnDelay;
   }
-
   // richiama sé stessa dopo il nuovo delay
   scene.time.delayedCall(enemySpawnDelay, () => {
-    spawnEnemiesOverTime(scene, selectedPG, carSelected, enemySpawnDelay, minimumSpawnDelay);
+    spawnThingsOverTime(scene, selectedPG, carSelected, enemySpawnDelay, minimumSpawnDelay);
   });
 }
 
 
-//da completare
-//phaser.min.js:1 Uncaught TypeError: Cannot read properties of undefined
-export function spawnRandomObject(scene, car) {
-  let objectToSpawn;
-  let randomItem = Phaser.Math.Between(1, 10);
-  isEven(randomItem) ? objectToSpawn = 'power' : objectToSpawn = 'life';
-  console.log(objectToSpawn)
-  let obj = scene.physics.add.image(400, -100, `${objectToSpawn}`); // posizione iniziale fuori dallo schermo
-  obj.setVelocityY(100); // scende lentamente verso il basso
-  obj.setDepth(1); // sopra la pista
 
-  scene.physics.add.overlap(car, obj, collectObject(obj), null, this);
-};
 
-export function collectObject (obj){
-    obj.disableBody(true, true);    
-  }
 
-export function spawnObjectsOverTime(scene, objSpawnDelay, minimumOBJSpawnDelay, car) {
-  // genera il nemico
-  spawnRandomObject(scene, car);
-  // calcola il nuovo ritardo: ogni volta diminuisce del 10%
-  objSpawnDelay *= 0.9;
-  // limite minimo per non esagerare
-  if (objSpawnDelay < minimumOBJSpawnDelay) {
-    objSpawnDelay = minimumOBJSpawnDelay;
-  }
-
-  // richiama sé stessa dopo il nuovo delay
-  scene.time.delayedCall(objSpawnDelay, () => {
-    spawnObjectsOverTime(scene, objSpawnDelay, minimumOBJSpawnDelay);
-  });
-}
 
 //Funzioni generali
 
