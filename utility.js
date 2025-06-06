@@ -23,7 +23,9 @@ export function powerBarActivation(scene, powerAnimation, keyAnimazione) {
       delay: 1000,
       loop: true,
       callback: () => {
-        scene.powerBar.height -= 10;
+        if(scene.powerBar.height > 0){
+          scene.powerBar.height -= 10;
+        }
         if (scene.powerBar.height == 0) {
           dischargeTimer.remove();
           powerAnimation.setVisible(false).stop();
@@ -61,10 +63,16 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
   scene.enemies.add(enemyCar);
   //enemyCar.setAngle(180); 
 
-  //imposta il movimento verso il giocatore
-    scene.physics.moveToObject(enemyCar, carSelected, 100); // 100 è la velocità in px/s
+  //animazione potere nemico
+  let enemyPowerAnimation = scene.add.sprite(enemyCar.x, enemyCar.y, randomEnemy.keyAnimazione).setVisible(false)
 
+    //if (!enemyPowerAnimation.anims.isPlaying) {
+    //  enemyPowerAnimation.play(randomEnemy.keyAnimazione);
+    //}
+    enemyCar.powerAnimation = enemyPowerAnimation;
+    enemyCar.keyAnimazione = randomEnemy.keyAnimazione
 
+  //gestore collisioni con giocatore
   scene.physics.add.collider(carSelected, enemyCar, () => {
     scene.lifeBar.height -= 5; 
     // Attiva rallentamento
@@ -77,6 +85,8 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
     });
   });
 };
+
+
 
 export function spawnRandomObj(scene, carSelected){
   let objectToSpawn;

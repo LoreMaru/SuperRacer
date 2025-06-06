@@ -1,3 +1,40 @@
+//il pezzo sull'animazione bisogna rimetterlo
+
+    this.enemies.getChildren().forEach(enemy => {
+      const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
+      enemy.powerAnimation.x = enemy.x;
+      enemy.powerAnimation.y = enemy.y;
+
+      if (enemy.isTracking) {
+        if (distance > 50) {
+      // Ancora lontano: continua a inseguire il giocatore
+          this.physics.moveToObject(enemy, this.car, 100);
+        }else{
+        // È vicino: smette di inseguire e va dritto giù
+          enemy.isTracking = false;
+        }
+
+        /*if(distance < 40){
+          //this.lifeBar.height -= 15;
+          enemy.body.setVelocity(0, 100); // Solo verso il basso
+          enemy.powerAnimation.play(enemy.keyAnimazione)
+          .setVisible(true)
+          .setOrigin(0.5)
+          .setDepth(2)
+          .setScale(1.2)
+          .setAlpha(0.7);
+        }*/
+      }
+  // Se è sceso fuori dallo schermo, lo eliminiamo
+      if (enemy.y > 700) {
+        enemy.destroy();
+      }
+    });
+
+
+
+
+
 //non funziona
 export function spawnRandomObject(scene, car) {
   let objectToSpawn;

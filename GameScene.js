@@ -37,7 +37,11 @@ class GameScene extends Phaser.Scene {
     this.load.image('PG2', './assets/SuperB.png');
     this.load.image('PG3', './assets/GalardB.png');
     this.load.image('PG4', './assets/RamB.png');
-
+    this.load.spritesheet(PG[0].keyAnimazione, PG[0].animazione, { frameWidth: 100, frameHeight: 100 });
+    this.load.spritesheet(PG[1].keyAnimazione, PG[1].animazione, { frameWidth: 100, frameHeight: 100 });
+    this.load.spritesheet(PG[2].keyAnimazione, PG[2].animazione, { frameWidth: 100, frameHeight: 100 });
+    this.load.spritesheet(PG[3].keyAnimazione, PG[3].animazione, { frameWidth: 100, frameHeight: 100 });
+    console.log('Animazioni disponibili:', this.anims.anims.entries);
   }
   
   create() {
@@ -101,7 +105,6 @@ class GameScene extends Phaser.Scene {
     .setVisible(false)
     .setScale(1.5)
     //.play(this.character.keyAnimazione);
-    //console.log('create ',this.character.keyAnimazione)
     
     //**gestione dell'apparizione dei nemici e degli oggetti
     this.enemies = this.physics.add.group();
@@ -147,12 +150,12 @@ class GameScene extends Phaser.Scene {
     if (this.lifeBar && this.lifeBar.height > 0) {
       const elapsed = this.time.now - this.startTime; // tempo totale in ms
       const totalSeconds = Math.floor(elapsed / 1000);
-
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       const secondsFormatted = seconds.toString().padStart(2, '0');
       const milliseconds = Math.floor(elapsed % 1000);
-
+      // probabilmente andrà messo qui per la schermata di game over
+      // if (this.lifeBar && this.lifeBar.height > 0) {
       this.timerText.setText(`Tempo: ${minutes}:${secondsFormatted}:${milliseconds}`);
 
       if (totalSeconds % 15 === 0 && this.lastHalfMinute !== totalSeconds) {
@@ -163,6 +166,8 @@ class GameScene extends Phaser.Scene {
       }
     }else {
       this.timer.remove();
+      //let timeResult = `Tempo: ${minutes}:${secondsFormatted}:${milliseconds}`
+      //this.scene.start('GameOverScene', { timeResult });
     }
 
     //**gestione update percorso
@@ -194,24 +199,51 @@ class GameScene extends Phaser.Scene {
       this.distanceSinceLastPiece = 0;                                  // resetta il contatore
     }
 
-    this.enemies.getChildren().forEach(enemy => {
-      const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
 
+    //Funzione che permette ai nemici di avvicinarsi al giocatore
+    this.enemies.getChildren().forEach(enemy => {
+      //Protezione: verifica che l'enemy sia ancora attivo
+      if (!enemy.active) return;
+    
+      //Protezione: aggiorna animazione solo se esiste
+      if (enemy.powerAnimation && enemy.powerAnimation.active) {
+        enemy.powerAnimation.x = enemy.x;
+        enemy.powerAnimation.y = enemy.y;
+      }
+    
+      //Calcola distanza dal giocatore
+      const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
+    
       if (enemy.isTracking) {
-        if (distance > 100) {
-      // Ancora lontano: continua a inseguire il giocatore
-          this.physics.moveToObject(enemy, this.car, 100);
+        //smette di inseguire in base alla distanza o se troppo in basso
+        if (distance <= 50 || enemy.y > 500) {
+          enemy.isTracking = false;
+          enemy.body.setVelocity(0, 100); // scende solo in verticale
+
+          this.lifeBar.height -= 10;
+          enemy.body.setVelocity(0, 100); // Solo verso il basso
+          enemy.powerAnimation.play(enemy.keyAnimazione)
+          .setVisible(true)
+          .setOrigin(0.5)
+          .setDepth(2)
+          .setScale(1.2)
+          .setAlpha(0.7);
         } else {
-      // È vicino: smette di inseguire e va dritto giù
-      enemy.isTracking = false;
-      enemy.body.setVelocity(0, 100); // Solo verso il basso
+          this.physics.moveToObject(enemy, this.car, 100);
         }
       }
-  // Se è sceso fuori dallo schermo, lo eliminiamo
+    
+      //Pulisci nemico e animazione se esce dallo schermo
       if (enemy.y > 700) {
+        if (enemy.powerAnimation && enemy.powerAnimation.active) {
+          enemy.powerAnimation.destroy();
+        }
         enemy.destroy();
       }
     });
+    
+
+
   }
 
 
