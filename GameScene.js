@@ -1,5 +1,5 @@
 import { createAnimations } from './animations.js';
-import { addTrackPiece, powerBarActivation, fasterByTime, spawnRandomEnemyCar, spawnEnemiesOverTime } from './utility.js';
+import { addTrackPiece, powerBarActivation, fasterByTime, spawnRandomEnemyCar, spawnEnemiesOverTime, spawnObjectsOverTime } from './utility.js';
 import { PG } from './characters.js';
 
 var car
@@ -29,10 +29,8 @@ class GameScene extends Phaser.Scene {
     this.load.image('straight', './assets/1.png');     // pezzo rettilineo
     this.load.image('curve_left', './assets/2.png'); // curva a sinistra
     this.load.image('curve_right', './assets/3.png'); // curva a destra
-    //this.load.image('enemy', './assets/SuperB.png');
     //this.load.spritesheet('bolla_papale', './assets/effects/10_weaponhit_spritesheet.png', { frameWidth: 100, frameHeight: 100 });
     this.load.spritesheet(this.character.keyAnimazione, this.character.animazione, { frameWidth: 100, frameHeight: 100 });
-    //console.log('preload ',this.character.keyAnimazione, this.character.animazione)
 
     //scelta del nemico
     this.load.image('PG1', './assets/BuickerB.png');
@@ -105,10 +103,15 @@ class GameScene extends Phaser.Scene {
     //.play(this.character.keyAnimazione);
     //console.log('create ',this.character.keyAnimazione)
     
-    spawnRandomEnemyCar(this,this.selectedID, this.car, this.spawnRandomEnemyCar)
+    //**gestione dell'apparizione dei nemici
     this.enemySpawnDelay = 10000; // in millisecondi (10 secondi)
     this.minimumSpawnDelay = 2000; // non andare sotto i 2 secondi
     spawnEnemiesOverTime(this, this.selectedID, this.car, this.enemySpawnDelay, this.minimumSpawnDelay); // avvia il ciclo
+    //**gestione apparizione oggetti
+    //commentata perché non funziona
+    //this.objSpawnDelay = 10000; // in millisecondi (10 secondi)
+    //this.minimumOBJSpawnDelay = 2000; // non andare sotto i 2 secondi
+    //spawnObjectsOverTime(this, this.objSpawnDelay, this.minimumOBJSpawnDelay, this.car); // avvia il ciclo
   
     //**inizializzazione comandi
     this.cursors = this.input.keyboard.createCursorKeys();

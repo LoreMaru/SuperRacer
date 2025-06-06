@@ -19,6 +19,8 @@ class SelectScene extends Phaser.Scene {
         const centerX = this.cameras.main.centerX;
         const centerY = this.cameras.main.centerY;
 
+        this.add.image(400, 300, 'sky').setDepth(-1);
+
         const positions = [
             { x: centerX - 200, y: centerY - 100 },
             { x: centerX + 200, y: centerY - 100 },
@@ -33,7 +35,8 @@ class SelectScene extends Phaser.Scene {
                 pos.x - 80,
                 pos.y - 50,
                 `${char.name}\n${char.potere}:\n${char.descrizione}`,
-                { fontSize: '16px', fill: '#ffffff', align: 'left', wordWrap: { width: 140, useAdvancedWrap: true } }
+                { fontSize: '16px', fill: '#ffffff', 
+                  align: 'left', wordWrap: { width: 140, useAdvancedWrap: true } }
             )
             .setOrigin(0.5);
             // Crea immagine cliccabile
@@ -77,7 +80,7 @@ class SelectScene extends Phaser.Scene {
                 //console.log(this.selectedCharacter)
             } else {
                 this.add.text(400, 560, 'Seleziona un personaggio!', {
-                fontSize: '16px', fill: '#ff4444'
+                fontSize: '16px', fill: '#ff4444',
                 }).setOrigin(0.5);
             }
     });                  

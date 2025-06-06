@@ -59,6 +59,7 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
   let enemyCar = scene.physics.add.image(400, -100, `${randomEnemy.ID}`); // posizione iniziale fuori dallo schermo
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
   enemyCar.setDepth(1); // sopra la pista
+  //enemyCar.setAngle(180); 
 
   scene.physics.add.collider(carSelected, enemyCar, () => {
     // Attiva rallentamento
@@ -90,21 +91,38 @@ export function spawnEnemiesOverTime(scene, selectedPG, carSelected, enemySpawnD
 
 
 //da completare
-export function spawnObject() {
+//phaser.min.js:1 Uncaught TypeError: Cannot read properties of undefined
+export function spawnRandomObject(scene, car) {
   let objectToSpawn;
   let randomItem = Phaser.Math.Between(1, 10);
   isEven(randomItem) ? objectToSpawn = 'power' : objectToSpawn = 'life';
-  obj = physics.add.image(400, -100, `${objectToSpawn}`); // posizione iniziale fuori dallo schermo
+  console.log(objectToSpawn)
+  let obj = scene.physics.add.image(400, -100, `${objectToSpawn}`); // posizione iniziale fuori dallo schermo
   obj.setVelocityY(100); // scende lentamente verso il basso
   obj.setDepth(1); // sopra la pista
 
-  physics.add.overlap(car, obj, collectObject, null, this);
-
-  function collectStar (car, obj, objectToSpawn){
-    obj.disableBody(true, true);
-    //??      
-  }
+  scene.physics.add.overlap(car, obj, collectObject(obj), null, this);
 };
+
+export function collectObject (obj){
+    obj.disableBody(true, true);    
+  }
+
+export function spawnObjectsOverTime(scene, objSpawnDelay, minimumOBJSpawnDelay, car) {
+  // genera il nemico
+  spawnRandomObject(scene, car);
+  // calcola il nuovo ritardo: ogni volta diminuisce del 10%
+  objSpawnDelay *= 0.9;
+  // limite minimo per non esagerare
+  if (objSpawnDelay < minimumOBJSpawnDelay) {
+    objSpawnDelay = minimumOBJSpawnDelay;
+  }
+
+  // richiama sé stessa dopo il nuovo delay
+  scene.time.delayedCall(objSpawnDelay, () => {
+    spawnObjectsOverTime(scene, objSpawnDelay, minimumOBJSpawnDelay);
+  });
+}
 
 //Funzioni generali
 
