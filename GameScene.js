@@ -221,7 +221,7 @@ class GameScene extends Phaser.Scene {
           enemy.body.setVelocity(0, 100); // scende solo in verticale
 
           this.lifeBar.height -= 10;
-          enemy.body.setVelocity(0, 100); // Solo verso il basso
+
           enemy.powerAnimation.play(enemy.keyAnimazione)
           .setVisible(true)
           .setOrigin(0.5)
