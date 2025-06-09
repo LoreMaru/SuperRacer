@@ -73,17 +73,15 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
     enemyCar.keyAnimazione = randomEnemy.keyAnimazione
 
   //gestore collisioni con giocatore
-  scene.physics.add.collider(carSelected, enemyCar, () => {
-    scene.lifeBar.height -= 5; 
-    // Attiva rallentamento
-    scene.slowDownActive = true;
-    // Effetto di tremolio sulla camera
-    scene.cameras.main.shake(100, 0.01);
-    // Dopo 3 secondi, torna normale
-    scene.time.delayedCall(1000, () => {
-      scene.slowDownActive = false;
-    });
-  });
+  scene.physics.add.collider(enemyCar, scene.car, () => {
+  if (!enemyCar.hasDamaged && enemyCar.state === 'attack') {
+    enemyCar.hasDamaged = true;
+    scene.lifeBar.height -= 10;
+    enemyCar.state = 'evade';     // Dopo l’attacco, evita
+    // fermati dal seguire e scendi
+    enemyCar.body.setVelocity(0, 100);
+  }
+});
 };
 
 

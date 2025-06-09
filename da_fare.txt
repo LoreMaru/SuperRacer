@@ -1,3 +1,67 @@
 verificare collisioni con i nemici
 dare una barra della vita anche ai nemici/farli smettere di inseguire il giocatore ad un cercto punto
 cercare idee per migliorare Diss-onanza
+
+
+
+utility -> spawnRandomEnemy
+  enemyCar.state = 'chase';                  // Stato iniziale: insegue
+enemyCar.hasActivatedPower = false;        // Non ha ancora attivato il potere
+enemyCar.hasDamaged = false;               // Non ha ancora causato danno
+enemyCar.body.setSize(40, 30).setOffset(12, 10); // Hitbox stretta
+enemyCar.isExecutingAttack = false; // nuovo flag
+
+
+update:
+ this.enemies.getChildren().forEach(enemy => {
+      const playerPowered = this.powerBar.height > 0;
+const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
+
+switch (enemy.state) {
+  case 'chase':
+    if (playerPowered && dist < 120) {
+      enemy.state = 'evade';
+      break;
+    }
+    if (dist <= 60 && !playerPowered) {
+      enemy.state = 'attack';
+      break;
+    }
+    this.physics.moveToObject(enemy, this.car, 100);
+    break;
+
+case 'attack':
+  if (!enemy.hasActivatedPower) {
+    enemy.hasActivatedPower = true;
+    enemy.isExecutingAttack = true;
+
+    enemy.powerAnimation.setVisible(true).play(enemy.keyAnimazione);
+
+    // Rimani fermo per 1 secondo mentre l'attacco è attivo
+    enemy.body.setVelocity(0);
+
+    scene.time.delayedCall(1000, () => {
+      enemy.isExecutingAttack = false;
+      enemy.state = 'evade';
+      enemy.body.setVelocity(0, 100); // scendi lentamente
+      enemy.powerAnimation.setVisible(false);
+    });
+  }
+  break;
+
+  case 'evade':
+    enemy.body.setVelocityX(enemy.x < this.car.x ? -100 : 100);
+    enemy.body.setVelocityY(20);
+    if (!playerPowered && dist > 200) {
+      enemy.state = 'chase';
+      enemy.hasActivatedPower = false; // pronto a nuovo attacco
+    }
+    break;
+}
+
+// Pulizia
+if (enemy.y > 700) {
+  enemy.powerAnimation?.destroy();
+  enemy.destroy();
+}
+    });
