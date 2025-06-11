@@ -200,54 +200,47 @@ class GameScene extends Phaser.Scene {
     }
 
 
+    //ORIGINALE Funzione che permette ai nemici di avvicinarsi al giocatore
     this.enemies.getChildren().forEach(enemy => {
-  if (!enemy.active) return;
-
-  const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
-  const playerPowered = this.powerBar.height > 0;
-
-  switch (enemy.state) {
-    case 'IDLE':
-      if (!playerPowered) {
-        enemy.state = 'CHASING';
+      //Protezione: verifica che l'enemy sia ancora attivo
+      if (!enemy.active) return;
+    
+      //Protezione: aggiorna animazione solo se esiste
+      if (enemy.powerAnimation && enemy.powerAnimation.active) {
+        enemy.powerAnimation.x = enemy.x;
+        enemy.powerAnimation.y = enemy.y;
       }
-      break;
+    
+      //Calcola distanza dal giocatore
+      const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
+    
+      if (enemy.isTracking) {
+        //smette di inseguire in base alla distanza o se troppo in basso
+        if (distance <= 50 || enemy.y > 500) {
+          enemy.isTracking = false;
+          enemy.body.setVelocity(0, 100); // scende solo in verticale
 
-    case 'CHASING':
-      if (playerPowered) {
-        enemy.state = 'AVOIDING';
-      } else if (dist < 30) {
-        enemy.state = 'ATTACKING';
-        enemy.body.setVelocity(0);
-        scene.time.delayedCall(500, () => {
-          enemy.attackReady = true;
-        });
-      } else {
-        this.physics.moveToObject(enemy, this.car, 100);
+          this.lifeBar.height -= 10;
+
+          enemy.powerAnimation.play(enemy.keyAnimazione)
+          .setVisible(true)
+          .setOrigin(0.5)
+          .setDepth(2)
+          .setScale(1.2)
+          .setAlpha(0.7);
+        } else {
+          this.physics.moveToObject(enemy, this.car, 100);
+        }
       }
-      break;
-
-    case 'AVOIDING':
-      if (!playerPowered) {
-        enemy.state = 'CHASING';
-      } else {
-        enemy.body.setVelocityX(enemy.x < this.car.x ? -100 : 100);
-        enemy.body.setVelocityY(20);
+    
+      //Pulisci nemico e animazione se esce dallo schermo
+      if (enemy.y > 700) {
+        if (enemy.powerAnimation && enemy.powerAnimation.active) {
+          enemy.powerAnimation.destroy();
+        }
+        enemy.destroy();
       }
-      break;
-
-    case 'ATTACKING':
-      // Ferma nemico e attesa, il collider lo sposterà su DONE
-      enemy.body.setVelocity(0);
-      break;
-
-    case 'DONE':
-      enemy.body.setVelocity(0, 100);
-      // Rimuovi se esce dallo schermo
-      if (enemy.y > 700) enemy.destroy();
-      break;
-  }
-});
+    });
     
 
 

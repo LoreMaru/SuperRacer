@@ -61,11 +61,12 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
   enemyCar.setDepth(1); // sopra la pista
   enemyCar.isTracking = true; // proprietà personalizzata, vedi update
 
-    enemyCar.state = 'IDLE';
+  //parte nuova funzione
+    enemyCar.state = 'CHASING';
     enemyCar.hasHitPlayer = false;
     enemyCar.attackReady = false;        // Timer prima di attacco
     enemyCar.body.setSize(40, 30).setOffset(12, 10); // hitbox stretta
-
+  //
   scene.enemies.add(enemyCar);
   //enemyCar.setAngle(180); 
 
