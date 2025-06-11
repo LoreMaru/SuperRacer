@@ -1,4 +1,51 @@
 //backup
+    originale:
+    //Funzione che permette ai nemici di avvicinarsi al giocatore
+    this.enemies.getChildren().forEach(enemy => {
+      //Protezione: verifica che l'enemy sia ancora attivo
+      if (!enemy.active) return;
+    
+      //Protezione: aggiorna animazione solo se esiste
+      if (enemy.powerAnimation && enemy.powerAnimation.active) {
+        enemy.powerAnimation.x = enemy.x;
+        enemy.powerAnimation.y = enemy.y;
+      }
+    
+      //Calcola distanza dal giocatore
+      const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.car.x, this.car.y);
+    
+      if (enemy.isTracking) {
+        //smette di inseguire in base alla distanza o se troppo in basso
+        if (distance <= 50 || enemy.y > 500) {
+          enemy.isTracking = false;
+          enemy.body.setVelocity(0, 100); // scende solo in verticale
+
+          this.lifeBar.height -= 10;
+
+          enemy.powerAnimation.play(enemy.keyAnimazione)
+          .setVisible(true)
+          .setOrigin(0.5)
+          .setDepth(2)
+          .setScale(1.2)
+          .setAlpha(0.7);
+        } else {
+          this.physics.moveToObject(enemy, this.car, 100);
+        }
+      }
+    
+      //Pulisci nemico e animazione se esce dallo schermo
+      if (enemy.y > 700) {
+        if (enemy.powerAnimation && enemy.powerAnimation.active) {
+          enemy.powerAnimation.destroy();
+        }
+        enemy.destroy();
+      }
+    });
+    -----
+    
+    
+    
+    
     //Funzione che permette ai nemici di avvicinarsi al giocatore
     this.enemies.getChildren().forEach(enemy => {
       //Protezione: verifica che l'enemy sia ancora attivo

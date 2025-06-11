@@ -60,8 +60,16 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
   enemyCar.setVelocityY(100); // scende lentamente verso il basso
   enemyCar.setDepth(1); // sopra la pista
   enemyCar.isTracking = true; // proprietà personalizzata, vedi update
+
+    enemyCar.state = 'IDLE';
+    enemyCar.hasHitPlayer = false;
+    enemyCar.attackReady = false;        // Timer prima di attacco
+    enemyCar.body.setSize(40, 30).setOffset(12, 10); // hitbox stretta
+
   scene.enemies.add(enemyCar);
   //enemyCar.setAngle(180); 
+
+
 
   //animazione potere nemico
   let enemyPowerAnimation = scene.add.sprite(enemyCar.x, enemyCar.y, randomEnemy.keyAnimazione).setVisible(false)
@@ -72,7 +80,15 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
     enemyCar.powerAnimation = enemyPowerAnimation;
     enemyCar.keyAnimazione = randomEnemy.keyAnimazione
 
-  //gestore collisioni con giocatore
+    scene.physics.add.collider(enemyCar, scene.car, () => {
+      if (enemyCar.state === 'ATTACKING' && enemyCar.attackReady && !enemyCar.hasHitPlayer) {
+        scene.lifeBar.height -= 10;
+        enemyCar.hasHitPlayer = true;
+        enemyCar.state = 'DONE';
+      }
+    });
+
+  /* vecchio collider//gestore collisioni con giocatore
   scene.physics.add.collider(enemyCar, scene.car, () => {
   if (!enemyCar.hasDamaged && enemyCar.state === 'attack') {
     enemyCar.hasDamaged = true;
@@ -81,7 +97,7 @@ export function spawnRandomEnemyCar(scene, selectedPG, carSelected) {
     // fermati dal seguire e scendi
     enemyCar.body.setVelocity(0, 100);
   }
-});
+});*/
 };
 
 

@@ -1,0 +1,11 @@
+
+Riepilogo stato/stato
+IDLE → mantiene in box finché il giocatore non diventa visibile e vulnerabile ⇒ passa a CHASING.
+
+CHASING → insegue finché il giocatore non ha potere o entra in range (<30px) ⇒ passa a ATTACKING o AVOIDING.
+
+ATTACKING → attesa 500 ms, attiva attackReady = true, se collide passa a DONE.
+
+AVOIDING → si muove lateralmente verso il basso finché il potere del giocatore finisce.
+
+DONE → scende fuori dalla scena e viene distrutto.
